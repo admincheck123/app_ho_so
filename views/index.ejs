@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Thêm Hồ Sơ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 font-sans min-h-screen">
+
+  <!-- Navbar -->
+  <nav class="bg-white shadow-md px-6 py-4 flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-blue-600 flex items-center gap-2">
+      <i class="fas fa-folder-plus"></i> Quản Lý Hồ Sơ
+    </h1>
+    <div id="clock" class="text-gray-700 text-sm md:text-base font-medium"></div>
+    <a href="/list" class="text-blue-600 hover:text-blue-800 text-lg font-medium flex items-center gap-1">
+      <i class="fas fa-list"></i> Xem Danh Sách
+    </a>
+  </nav>
+
+  <!-- Main Form Container -->
+  <div class="max-w-5xl mx-auto p-8 bg-white rounded-xl shadow-lg mt-8">
+    <h2 class="text-2xl font-bold mb-6 text-blue-600 text-center">
+      <i class="fas fa-user-plus mr-2"></i> Thêm Hồ Sơ Mới
+    </h2>
+    <form action="/add" method="POST" enctype="multipart/form-data" class="space-y-6">
+      
+      <!-- Grid Inputs -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Họ và Tên:</label>
+          <input type="text" name="name" required class="input-style" placeholder="Nguyễn Văn A">
+        </div>
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Địa chỉ:</label>
+          <input type="text" name="address" required class="input-style" placeholder="123 Đường ABC, Quận 1">
+        </div>
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Số điện thoại:</label>
+          <input type="text" name="phone" required class="input-style" placeholder="0909xxxxxx">
+        </div>
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Ngày sinh:</label>
+          <input type="date" name="birthday" required class="input-style">
+        </div>
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">CCCD:</label>
+          <input type="text" name="idcard" required class="input-style" placeholder="123456789000">
+        </div>
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Email (có thể bỏ trống):</label>
+          <input type="email" name="email" class="input-style" placeholder="example@gmail.com">
+        </div>
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Số tiền mượn:</label>
+          <input type="number" name="loanAmount" required class="input-style" placeholder="1000000">
+        </div>
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Ngày mượn:</label>
+          <input type="date" name="loanDate" required class="input-style">
+        </div>
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Ngày trả:</label>
+          <input type="date" name="returnDate" required class="input-style">
+        </div>
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Lãi suất (%):</label>
+          <input type="number" step="0.01" name="interestRate" required class="input-style" placeholder="5">
+        </div>
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Tiền lời (VNĐ):</label>
+          <input type="number" name="interestEarned" required class="input-style" placeholder="50000">
+        </div>
+      </div>
+
+      <!-- Avatar -->
+      <div>
+        <label class="block font-semibold text-gray-700 mb-2">Ảnh đại diện:</label>
+        <input type="file" name="avatar" accept="image/*" class="file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+      </div>
+
+      <!-- Additional Images -->
+      <div>
+        <label class="block font-semibold text-gray-700 mb-2">Ảnh minh hoạ (nhiều ảnh):</label>
+        <input type="file" name="images" accept="image/*" multiple class="file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+      </div>
+
+      <!-- Submit Button -->
+      <div class="text-center">
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-lg px-8 py-3 rounded-full shadow-md transition-all duration-300">
+          <i class="fas fa-save mr-2"></i> Lưu hồ sơ
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Style -->
+  <style>
+    .input-style {
+      width: 100%;
+      padding: 0.625rem;
+      border-radius: 0.5rem;
+      border: 1px solid #d1d5db;
+      outline: none;
+      transition: border-color 0.3s ease;
+    }
+    .input-style:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+  </style>
+  <script>
+    function updateClock() {
+      const now = new Date();
+      const formatted = now.toLocaleTimeString('vi-VN') + ' - ' + now.toLocaleDateString('vi-VN');
+      document.getElementById('clock').textContent = formatted;
+    }
+    setInterval(updateClock, 1000); // cập nhật mỗi giây
+    updateClock(); // gọi ngay khi trang load
+  </script>
+  
+</body>
+</html>
