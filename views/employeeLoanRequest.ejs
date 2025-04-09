@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Yêu Cầu Vay</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <%- include('partials/employeeMenu') %>
+  <div class="max-w-3xl mx-auto mt-10 bg-white p-6 rounded-lg shadow-lg">
+    <h2 class="text-2xl font-semibold mb-6 text-gray-800">Gửi Yêu Cầu Vay</h2>
+    <% if (error) { %>
+      <div class="bg-red-100 text-red-700 p-3 rounded mb-4"><%= error %></div>
+    <% } %>
+    <form action="/employee/loan-request" method="POST" class="space-y-5">
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Số tài khoản</label>
+        <input readonly value="<%= employee.accountNumber %>" class="w-full bg-gray-100 border border-gray-300 p-2 rounded"/>
+      </div>
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Số tiền vay</label>
+        <input type="number" name="amount" required class="w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"/>
+      </div>
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Lý do</label>
+        <textarea name="reason" rows="3" required class="w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"></textarea>
+      </div>
+      <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">
+        Gửi Yêu Cầu
+      </button>
+    </form>
+
+    <hr class="my-8"/>
+
+    <h3 class="text-xl font-semibold mb-4 text-gray-800">Lịch Sử Yêu Cầu</h3>
+    <% if (loanHistory.length) { %>
+      <div class="overflow-x-auto">
+        <table class="min-w-full bg-white">
+          <thead class="bg-gray-700 text-white">
+            <tr>
+              <th class="py-2 px-4">#</th>
+              <th class="py-2 px-4">Số tiền</th>
+              <th class="py-2 px-4">Lý do</th>
+              <th class="py-2 px-4">Trạng thái</th>
+              <th class="py-2 px-4">Ngày gửi</th>
+            </tr>
+          </thead>
+          <tbody class="text-gray-700">
+            <% loanHistory.forEach((h, i) => { %>
+              <tr class="<%= i%2===0?'bg-gray-50':'' %>">
+                <td class="py-2 px-4"><%= i+1 %></td>
+                <td class="py-2 px-4"><%= h.amount.toLocaleString() %>₫</td>
+                <td class="py-2 px-4"><%= h.reason %></td>
+                <td class="py-2 px-4">
+                  <% if (h.status==='pending') { %>Chờ duyệt
+                  <% } else if (h.status==='approved') { %>Đã duyệt
+                  <% } else { %>Từ chối<% } %>
+                </td>
+                <td class="py-2 px-4"><%= new Date(h.createdAt).toLocaleString('vi-VN') %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } else { %>
+      <p class="text-gray-600">Chưa có yêu cầu nào.</p>
+    <% } %>
+  </div>
+</body>
+</html>

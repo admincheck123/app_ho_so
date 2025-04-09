@@ -8,8 +8,68 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body class="bg-gradient-to-br from-gray-100 to-white min-h-screen">
+
+  <!-- NAVBAR CHUYỂN ĐẾN ADMIN MENU -->
+  <nav class="bg-white shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16">
+        <div class="flex">
+          <a href="/" class="flex items-center px-3">
+            <i class="fas fa-home text-indigo-600 text-xl"></i>
+            <span class="ml-2 font-semibold text-gray-800">Trang Chủ</span>
+          </a>
+        </div>
+        <div class="flex items-center">
+          <!-- Dropdown Admin -->
+          <div class="relative">
+            <button id="adminDropdownBtn" class="flex items-center px-4 py-2 text-gray-700 hover:text-indigo-600 focus:outline-none">
+              <i class="fas fa-user-shield text-xl"></i>
+              <span class="ml-2">Admin</span>
+              <i class="fas fa-chevron-down ml-1 text-sm"></i>
+            </button>
+            <div id="adminDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-20">
+              <a href="/admin/create-employee" class="block px-4 py-2 hover:bg-gray-100">
+                <i class="fas fa-user-plus mr-2"></i>Tạo Nhân Viên
+              </a>
+              <a href="/admin/employee-list" class="block px-4 py-2 hover:bg-gray-100">
+                <i class="fas fa-users mr-2"></i>Danh Sách NV
+              </a>
+              <a href="/admin/loan-requests" class="block px-4 py-2 hover:bg-gray-100">
+                <i class="fas fa-file-invoice-dollar mr-2"></i>Yêu Cầu Vay
+                <% if (loanRequestCount > 0) { %>
+                  <span class="ml-1 inline-block bg-red-500 text-white text-xs font-bold rounded-full px-2 animate-pulse">
+                    <%= loanRequestCount %>
+                  </span>
+                <% } %>
+              </a>
+              <div class="border-t border-gray-200"></div>
+              <a href="/logout" class="block px-4 py-2 hover:bg-gray-100">
+                <i class="fas fa-sign-out-alt mr-2"></i>Đăng Xuất
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <script>
+    // Toggle dropdown Admin
+    document.getElementById('adminDropdownBtn').addEventListener('click', function() {
+      document.getElementById('adminDropdown').classList.toggle('hidden');
+    });
+    // Close khi click ra ngoài
+    window.addEventListener('click', function(e) {
+      const dropdown = document.getElementById('adminDropdown');
+      const btn = document.getElementById('adminDropdownBtn');
+      if (!btn.contains(e.target) && !dropdown.contains(e.target)) {
+        dropdown.classList.add('hidden');
+      }
+    });
+  </script>
+
   <!-- Khối Tài khoản nhỏ gọn (độc lập) -->
-  <div class="max-w-md mx-auto mt-12 p-6 bg-white rounded-xl shadow-xl border border-gray-200">
+  <div class="max-w-md mx-auto mt-6 p-6 bg-white rounded-xl shadow-xl border border-gray-200">
     <div class="flex items-center justify-between">
       <h2 class="text-xl font-bold text-indigo-600">
         <i class="fas fa-money-bill-wave mr-2 text-green-500"></i>Tài Khoản
@@ -26,7 +86,6 @@
         <i class="fas fa-history mr-2"></i>Xem lịch sử cập nhật
       </button>
     </div>
-    <!-- Form cập nhật tài khoản (ẩn mặc định) -->
     <div id="updateAccountForm" class="mt-4 hidden">
       <form action="/update-account" method="POST" class="space-y-4">
         <div>
@@ -51,7 +110,6 @@
         </button>
       </form>
     </div>
-    <!-- Khối lịch sử cập nhật tài khoản (ẩn mặc định) với phân trang -->
     <div id="accountHistory" class="mt-4 hidden">
       <% if (account.history && account.history.length > 0) { %>
         <h3 class="text-sm font-semibold text-gray-700 mb-2">🕘 Lịch sử giao dịch</h3>
@@ -81,7 +139,6 @@
             </tbody>
           </table>
         </div>
-        <!-- Phân trang (nút Previous và Next) -->
         <div id="paginationControls" class="mt-2 flex items-center justify-center gap-4"></div>
       <% } else { %>
         <p class="text-sm text-gray-500">Chưa có giao dịch.</p>
@@ -97,7 +154,6 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
       <% profiles.forEach(profile => { %>
         <div class="block bg-white rounded-2xl shadow-md hover:shadow-xl transition duration-300 transform hover:-translate-y-1 overflow-hidden border border-gray-100">
-          <!-- Sử dụng avatar nếu tồn tại, nếu không thì dùng default-avatar.png -->
           <a href="/profile/<%= profile._id %>">
             <img 
               src="/uploads/<%= profile.avatar ? profile.avatar : 'default-avatar.png' %>" 
@@ -108,15 +164,15 @@
             <div class="p-5">
               <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold text-gray-800 truncate">
-                  <i class="fas fa-user-circle text-indigo-500 mr-2"></i> <%= profile.name %>
+                  <i class="fas fa-user-circle text-indigo-500 mr-2"></i><%= profile.name %>
                 </h2>
                 <% if (profile.paid) { %>
                   <span class="bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full shadow-sm">
-                    <i class="fas fa-check-circle mr-1"></i> Đã trả
+                    <i class="fas fa-check-circle mr-1"></i>Đã trả
                   </span>
                 <% } else { %>
                   <span class="bg-red-100 text-red-600 text-xs font-semibold px-3 py-1 rounded-full shadow-sm">
-                    <i class="fas fa-exclamation-circle mr-1"></i> Chưa trả
+                    <i class="fas fa-exclamation-circle mr-1"></i>Chưa trả
                   </span>
                 <% } %>
               </div>
@@ -127,8 +183,8 @@
                 <i class="far fa-calendar-alt text-indigo-400 mr-1"></i><%= profile.daysLeftText %>
               </p>
               <div class="mt-4 text-xs text-gray-400">
-                <p><i class="far fa-calendar-plus mr-1"></i> Tạo: <%= new Date(profile.createdAt).toLocaleString() %></p>
-                <p><i class="far fa-clock mr-1"></i> Cập nhật: <%= new Date(profile.updatedAt).toLocaleString() %></p>
+                <p><i class="far fa-calendar-plus mr-1"></i>Tạo: <%= new Date(profile.createdAt).toLocaleString() %></p>
+                <p><i class="far fa-clock mr-1"></i>Cập nhật: <%= new Date(profile.updatedAt).toLocaleString() %></p>
               </div>
             </div>
           </a>
@@ -145,138 +201,51 @@
 
     <div class="text-center mt-12">
       <a href="/" class="inline-flex items-center text-indigo-600 font-medium hover:underline">
-        <i class="fas fa-arrow-left mr-2"></i> Quay lại trang tạo hồ sơ
+        <i class="fas fa-arrow-left mr-2"></i>Quay lại trang tạo hồ sơ
       </a>
     </div>
   </div>
 
-  <!-- JavaScript Toggle cho form cập nhật và lịch sử tài khoản -->
+  <!-- JS Toggle và Phân trang lịch sử -->
   <script>
-    // Toggle form cập nhật số tiền
     document.getElementById("toggleUpdateAccountForm").addEventListener("click", function(){
-      var updateForm = document.getElementById("updateAccountForm");
-      updateForm.classList.toggle("hidden");
-      // Ẩn lịch sử nếu form mở
+      document.getElementById("updateAccountForm").classList.toggle("hidden");
       document.getElementById("accountHistory").classList.add("hidden");
     });
-
-    // Toggle lịch sử tài khoản
     document.getElementById("toggleAccountHistory").addEventListener("click", function(){
-      var historyEl = document.getElementById("accountHistory");
-      historyEl.classList.toggle("hidden");
-      // Ẩn form cập nhật nếu lịch sử mở
+      document.getElementById("accountHistory").classList.toggle("hidden");
       document.getElementById("updateAccountForm").classList.add("hidden");
-      // Sau khi hiển thị lịch sử, khởi tạo phân trang
       paginateHistory();
     });
 
-    // Phân trang lịch sử giao dịch: hiển thị 5 dòng mỗi trang
     function paginateHistory() {
       const rows = document.querySelectorAll('#historyTable tbody .history-row');
       const rowsPerPage = 5;
-      const totalRows = rows.length;
-      const totalPages = Math.ceil(totalRows / rowsPerPage);
+      const totalPages = Math.ceil(rows.length / rowsPerPage);
       let currentPage = 1;
-      
-      function renderTable() {
-        rows.forEach((row, index) => {
-          row.style.display = (index >= (currentPage-1) * rowsPerPage && index < currentPage * rowsPerPage) ? '' : 'none';
-        });
-        renderPaginationControls();
-      }
-      
-      function renderPaginationControls() {
-        const container = document.getElementById('paginationControls');
+      const container = document.getElementById('paginationControls');
+
+      function render() {
+        rows.forEach((r,i) => r.style.display = (i>= (currentPage-1)*rowsPerPage && i< currentPage*rowsPerPage) ? '' : 'none');
         container.innerHTML = '';
-        if (totalPages <= 1) return;
-        
-        const prevBtn = document.createElement('button');
-        prevBtn.textContent = 'Trước';
-        prevBtn.className = 'px-3 py-1 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded';
-        prevBtn.disabled = currentPage === 1;
-        prevBtn.addEventListener('click', function() {
-          if (currentPage > 1) {
-            currentPage--;
-            renderTable();
-          }
-        });
-        container.appendChild(prevBtn);
-        
-        const pageInfo = document.createElement('span');
-        pageInfo.textContent = `Trang ${currentPage} của ${totalPages}`;
-        pageInfo.className = 'px-3';
-        container.appendChild(pageInfo);
-        
-        const nextBtn = document.createElement('button');
-        nextBtn.textContent = 'Sau';
-        nextBtn.className = 'px-3 py-1 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded';
-        nextBtn.disabled = currentPage === totalPages;
-        nextBtn.addEventListener('click', function() {
-          if (currentPage < totalPages) {
-            currentPage++;
-            renderTable();
-          }
-        });
-        container.appendChild(nextBtn);
+        if (totalPages <=1) return;
+        const prev = document.createElement('button');
+        prev.textContent='Trước'; prev.className='px-3 py-1 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded';
+        prev.disabled = currentPage===1;
+        prev.onclick = ()=>{ currentPage--; render(); };
+        const info = document.createElement('span'); info.textContent=`Trang ${currentPage} của ${totalPages}`; info.className='px-3';
+        const next = document.createElement('button');
+        next.textContent='Sau'; next.className='px-3 py-1 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded';
+        next.disabled = currentPage===totalPages;
+        next.onclick = ()=>{ currentPage++; render(); };
+        container.append(prev, info, next);
       }
-      
-      renderTable();
+      render();
     }
+
+    // Gán class history-row nếu chưa có
+    document.querySelectorAll('#accountHistory tbody tr').forEach(r=>r.classList.add('history-row'));
   </script>
-  
-  <!-- Script xử lý modal cho các chức năng khác -->
-  <script>
-    function openModal(src) {
-      document.getElementById('modalImage').src = src;
-      document.getElementById('imageModal').classList.add('open');
-    }
-  
-    function closeModal() {
-      document.getElementById('imageModal').classList.remove('open');
-    }
-  
-    document.getElementById('imageModal').addEventListener('click', function (e) {
-      if (e.target.id === 'imageModal') closeModal();
-    });
-  
-    function openEditModal() {
-      // Nếu không có editModal trên trang, cảnh báo (để mã không gây lỗi)
-      const modal = document.getElementById('editModal');
-      if(modal) modal.classList.add('open');
-    }
-  
-    function closeEditModal() {
-      const modal = document.getElementById('editModal');
-      if(modal) modal.classList.remove('open');
-    }
-  
-    function openNoteModal() {
-      document.getElementById('noteModal').classList.add('open');
-    }
-  
-    function closeNoteModal() {
-      document.getElementById('noteModal').classList.remove('open');
-    }
-  
-    // Cho phép đóng modal khi nhấn nền tối cho noteModal
-    document.getElementById('noteModal').addEventListener('click', function (e) {
-      if (e.target.id === 'noteModal') closeNoteModal();
-    });
-  
-    function deleteProfile(profileId) {
-      if (confirm('Bạn có chắc chắn muốn xóa hồ sơ này không?')) {
-        window.location.href = '/delete/' + profileId;
-      }
-    }
-  </script>
-  
-  <!-- Phần khởi tạo phân trang lịch sử khi có bảng (nếu tồn tại) -->
-  <script>
-    // Nếu bảng lịch sử có tồn tại, gán lớp "history-row" cho các hàng.
-    const historyRows = document.querySelectorAll('#accountHistory tbody tr');
-    historyRows.forEach(row => {
-      row.classList.add('history-row');
-    });
-  </script>
+
 </body>
 </html>

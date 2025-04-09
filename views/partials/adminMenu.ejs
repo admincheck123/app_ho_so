@@ -1,0 +1,83 @@
+<!-- views/partials/adminMenu.ejs -->
+<nav class="bg-gray-800 text-gray-100 px-6 py-4 flex items-center space-x-6 shadow-lg">
+  <a href="/list" class="flex items-center hover:text-white transition">
+    <!-- Icon “user add” -->
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-1" fill="currentColor" viewBox="0 0 20 20">
+      <path d="M8 9a3 3 0 100-6 3 3 0 000 6z" />
+      <path fill-rule="evenodd" d="M2 14s1-1 6-1 6 1 6 1v1H2v-1z" clip-rule="evenodd" />
+      <path d="M15 8a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1h-1a1 1 0 110-2h1v-1a1 1 0 011-1z"/>
+    </svg>
+    Trang chủ
+  </a>
+  <a href="/admin/create-employee" class="flex items-center hover:text-white transition">
+    <!-- Icon “user add” -->
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-1" fill="currentColor" viewBox="0 0 20 20">
+      <path d="M8 9a3 3 0 100-6 3 3 0 000 6z" />
+      <path fill-rule="evenodd" d="M2 14s1-1 6-1 6 1 6 1v1H2v-1z" clip-rule="evenodd" />
+      <path d="M15 8a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1h-1a1 1 0 110-2h1v-1a1 1 0 011-1z"/>
+    </svg>
+    Tạo Nhân Viên
+  </a>
+
+  <a href="/admin/employee-list" class="flex items-center hover:text-white transition">
+    <!-- Icon “users” -->
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-1" fill="currentColor" viewBox="0 0 20 20">
+      <path d="M13 7a3 3 0 11-6 0 3 3 0 016 0z" />
+      <path fill-rule="evenodd" d="M5 14s1-1 5-1 5 1 5 1v1H5v-1z" clip-rule="evenodd" />
+      <path d="M16 12a2 2 0 11-4 0 2 2 0 014 0z" />
+    </svg>
+    Danh Sách NV
+  </a>
+
+  <a href="/admin/loan-requests" class="relative flex items-center hover:text-white transition" id="loanLink">
+    <!-- Icon “clipboard list” -->
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 3h6a2 2 0 012 2v2H7V5a2 2 0 012-2z"/>
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6"/>
+    </svg>
+    Yêu Cầu Vay
+    <% if (loanRequestCount > 0) { %>
+      <span id="loanBadge" class="absolute -top-2 -right-3 bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5 animate-pulse">
+        <%= loanRequestCount %>
+      </span>
+    <% } %>
+  </a>
+
+  <div class="flex-1"></div>
+
+  <a href="/logout" class="flex items-center hover:text-white transition">
+    <!-- Icon “logout” -->
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M17 16l4-4m0 0l-4-4m4 4H7"/>
+    </svg>
+    Đăng Xuất
+  </a>
+</nav>
+
+<script>
+// Hiệu ứng “pulse” badge mỗi khi số thay đổi
+document.addEventListener('DOMContentLoaded', () => {
+  const badge = document.getElementById('loanBadge');
+  if (!badge) return;
+
+  let prev = parseInt(badge.textContent, 10);
+  setInterval(async () => {
+    try {
+      const res = await fetch('/admin/loan-requests/count');
+      const { count } = await res.json();
+      if (count !== prev) {
+        badge.textContent = count;
+        badge.classList.remove('animate-pulse');
+        // kích hoạt lại pulse
+        void badge.offsetWidth;
+        badge.classList.add('animate-pulse');
+        prev = count;
+      }
+    } catch (e) {
+      console.error('Không thể cập nhật số yêu cầu vay', e);
+    }
+  }, 10000); // mỗi 10s kiểm tra một lần
+});
+</script>

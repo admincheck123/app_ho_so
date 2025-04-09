@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Thành Công</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+  <%- include('partials/employeeMenu') %>
+  <div class="bg-white p-8 rounded-lg shadow-lg text-center max-w-sm">
+    <h2 class="text-2xl font-semibold mb-4 text-gray-800">Gửi Thành Công!</h2>
+    <p class="mb-6 text-gray-600">Yêu cầu vay đã được gửi. Vui lòng chờ phê duyệt.</p>
+    <a href="/employee/create-loan-request" class="inline-block bg-blue-600 text-white py-2 px-6 rounded hover:bg-blue-700 transition">
+      Gửi Tiếp
+    </a>
+  </div>
+</body>
+</html>
