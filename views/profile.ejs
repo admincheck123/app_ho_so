@@ -12,15 +12,12 @@
       0% { opacity: 0; transform: scale(0.95); }
       100% { opacity: 1; transform: scale(1); }
     }
-    .animate-fadeIn {
-      animation: fadeIn 0.3s ease-out;
-    }
+    .animate-fadeIn { animation: fadeIn 0.3s ease-out; }
   </style>
 </head>
 <body class="bg-gray-100 font-sans leading-relaxed">
   <div class="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-xl mt-10">
     <div class="relative">
-
       <!-- Thẻ trạng thái thanh toán -->
       <div class="absolute top-0 right-0 mt-2 mr-2">
         <% if (profile.paid) { %>
@@ -42,41 +39,53 @@
           class="w-40 h-40 rounded-full shadow-md object-cover border-4 border-blue-300" 
           alt="Avatar"
         >
-
         <div>
           <h2 class="text-2xl font-bold text-indigo-600 mb-2">
             <i class="fas fa-user mr-2"></i> <%= profile.name %>
           </h2>
-          <p class="text-gray-700"><i class="fas fa-map-marker-alt text-red-500 mr-2"></i> <%= profile.address %></p>
-          <p class="text-gray-700"><i class="fas fa-phone text-green-500 mr-2"></i> <%= profile.phone %></p>
-          <p class="text-gray-700"><i class="fas fa-envelope text-yellow-500 mr-2"></i> <%= profile.email || 'Không có' %></p>
-          <p class="text-gray-700"><i class="fas fa-id-card text-blue-400 mr-2"></i> CCCD: <%= profile.idcard %></p>
-          <p class="text-gray-700"><i class="fas fa-calendar text-purple-500 mr-2"></i> Ngày sinh: <%= profile.birthday || 'Không rõ' %></p>
+          <p class="text-gray-700">
+            <i class="fas fa-map-marker-alt text-red-500 mr-2"></i> <%= profile.address %>
+          </p>
+          <p class="text-gray-700">
+            <i class="fas fa-phone text-green-500 mr-2"></i> <%= profile.phone %>
+          </p>
+          <p class="text-gray-700">
+            <i class="fas fa-envelope text-yellow-500 mr-2"></i> <%= profile.email || 'Không có' %>
+          </p>
+          <p class="text-gray-700">
+            <i class="fas fa-id-card text-blue-400 mr-2"></i> CCCD: <%= profile.idcard %>
+          </p>
+          <p class="text-gray-700">
+            <i class="fas fa-calendar text-purple-500 mr-2"></i> Ngày sinh: <%= profile.birthday || 'Không rõ' %>
+          </p>
         </div>
       </div>
 
       <hr class="my-6 border-t-2 border-gray-200">
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-800 text-lg">
-        <p><i class="fas fa-money-bill-wave text-green-500 mr-2"></i> Số tiền mượn: 
+        <p>
+          <i class="fas fa-money-bill-wave text-green-500 mr-2"></i> Số tiền mượn: 
           <strong class="text-green-700">
             <%= profile.loanAmount.toLocaleString('vi-VN') %> VNĐ
           </strong>
         </p>
-        <p><i class="fas fa-percent text-yellow-500 mr-2"></i> Lãi suất: 
-          <strong class="text-yellow-600">
-            <%= profile.interestRate %>%
-          </strong>
+        <p>
+          <i class="fas fa-percent text-yellow-500 mr-2"></i> Lãi suất: 
+          <strong class="text-yellow-600"><%= profile.interestRate %>%</strong>
         </p>
-        <p><i class="fas fa-coins text-orange-500 mr-2"></i> Tiền lời: 
+        <p>
+          <i class="fas fa-coins text-orange-500 mr-2"></i> Tiền lời: 
           <strong class="text-orange-600">
             <%= profile.interestEarned.toLocaleString('vi-VN') %> VNĐ
           </strong>
         </p>
-        <p><i class="fas fa-calendar-day text-indigo-500 mr-2"></i> Ngày mượn: 
+        <p>
+          <i class="fas fa-calendar-day text-indigo-500 mr-2"></i> Ngày mượn: 
           <span class="text-gray-700"><%= profile.loanDate %></span>
         </p>
-        <p><i class="fas fa-calendar-check text-indigo-600 mr-2"></i> Ngày trả: 
+        <p>
+          <i class="fas fa-calendar-check text-indigo-600 mr-2"></i> Ngày trả: 
           <span class="text-gray-700"><%= profile.returnDate %></span>
         </p>
       </div>
@@ -99,14 +108,36 @@
         </div>
       </div>
 
+
+      <!-- Phần Ghi chú -->
+      <div class="mt-8">
+        <h3 class="text-xl font-semibold mb-2 text-blue-500">
+          <i class="fas fa-sticky-note mr-2"></i> Ghi Chú
+        </h3>
+        <div class="p-4 bg-gray-50 rounded border border-gray-200">
+          <% if (profile.notes && profile.notes.trim().length > 0) { %>
+            <p class="text-gray-700"><%= profile.notes %></p>
+          <% } else { %>
+            <p class="text-gray-500 italic">Chưa có ghi chú.</p>
+          <% } %>
+        </div>
+        <div class="text-right mt-2">
+          <button onclick="openNoteModal()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded shadow transition">
+            <i class="fas fa-edit mr-1"></i> Chỉnh sửa ghi chú
+          </button>
+        </div>
+      </div>
+
       <div class="mt-6 text-sm text-gray-700">
-        <p><i class="fas fa-clock mr-2 text-gray-600"></i> Thời gian tạo hồ sơ: 
+        <p>
+          <i class="fas fa-clock mr-2 text-gray-600"></i> Thời gian tạo hồ sơ: 
           <span class="text-indigo-500">
             <%= new Date(profile.createdAt).toLocaleString('vi-VN') %>
           </span>
         </p>
         <% if (new Date(profile.updatedAt).getTime() !== new Date(profile.createdAt).getTime()) { %>
-          <p><i class="fas fa-history mr-2 text-gray-600"></i> Cập nhật lần cuối: 
+          <p>
+            <i class="fas fa-history mr-2 text-gray-600"></i> Cập nhật lần cuối: 
             <span class="text-red-500">
               <%= new Date(profile.updatedAt).toLocaleString('vi-VN') %>
             </span>
@@ -141,55 +172,83 @@
     </div>
   </div>
 
-  <!-- Modal sửa hồ sơ -->
+  <!-- Modal chỉnh sửa hồ sơ -->
   <div id="editModal" class="modal fixed inset-0 bg-black bg-opacity-60 items-center justify-center z-50">
-    <div class="bg-white p-8 rounded-2xl shadow-xl max-w-2xl w-full relative animate-fadeIn">
+    <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-2xl w-full mx-4 overflow-y-auto max-h-[90vh] animate-fadeIn">
       <button onclick="closeEditModal()" class="absolute top-3 right-3 text-gray-600 hover:text-red-500 text-xl font-bold">&times;</button>
       <h2 class="text-2xl font-bold text-indigo-600 mb-4 text-center">Sửa Hồ Sơ</h2>
-      
       <form action="/update-profile" method="POST" enctype="multipart/form-data" class="space-y-4">
-        <div>
-          <label class="block font-medium mb-1">Ảnh đại diện:</label>
-          <input type="file" name="avatar" class="block w-full border rounded px-3 py-2">
-        </div>
-        <div>
-          <label class="block font-medium mb-1">Tên:</label>
-          <input type="text" name="name" value="<%= profile.name %>" class="w-full border px-3 py-2 rounded">
-        </div>
-        <div>
-          <label class="block font-medium mb-1">Địa chỉ:</label>
-          <input type="text" name="address" value="<%= profile.address %>" class="w-full border px-3 py-2 rounded">
-        </div>
-        <div>
-          <label class="block font-medium mb-1">Email:</label>
-          <input type="email" name="email" value="<%= profile.email || '' %>" class="w-full border px-3 py-2 rounded">
-        </div>
-        <div>
-          <label class="block font-medium mb-1">Số điện thoại:</label>
-          <input type="text" name="phone" value="<%= profile.phone %>" class="w-full border px-3 py-2 rounded">
-        </div>
-        <div>
-          <label class="block font-medium mb-1">CCCD:</label>
-          <input type="text" name="idcard" value="<%= profile.idcard %>" class="w-full border px-3 py-2 rounded">
-        </div>
-        <div>
-          <label class="block font-medium mb-1">Ngày sinh:</label>
-          <input type="date" name="birthday" value="<%= profile.birthday || '' %>" class="w-full border px-3 py-2 rounded">
-        </div>
-        <div>
-          <label class="block font-medium mb-1">Trạng thái thanh toán:</label>
-          <select name="paid" class="w-full border px-3 py-2 rounded">
-            <option value="true" <%= profile.paid ? 'selected' : '' %>>Đã thanh toán</option>
-            <option value="false" <%= !profile.paid ? 'selected' : '' %>>Chưa thanh toán</option>
-          </select>
-        </div>
-        <div>
-          <label class="block font-medium mb-1">Thêm ảnh minh hoạ:</label>
-          <input type="file" name="images" multiple class="block w-full border rounded px-3 py-2">
+        <!-- Ẩn trường _id để cập nhật hồ sơ -->
+        <input type="hidden" name="_id" value="<%= profile._id %>">
+        <div class="grid grid-cols-1 gap-4">
+          <div>
+            <label class="block font-medium mb-1">Ảnh đại diện:</label>
+            <input type="file" name="avatar" class="block w-full border rounded px-3 py-2">
+          </div>
+          <div>
+            <label class="block font-medium mb-1">Tên:</label>
+            <input type="text" name="name" value="<%= profile.name %>" class="w-full border px-3 py-2 rounded">
+          </div>
+          <div>
+            <label class="block font-medium mb-1">Địa chỉ:</label>
+            <input type="text" name="address" value="<%= profile.address %>" class="w-full border px-3 py-2 rounded">
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block font-medium mb-1">Email:</label>
+              <input type="email" name="email" value="<%= profile.email || '' %>" class="w-full border px-3 py-2 rounded">
+            </div>
+            <div>
+              <label class="block font-medium mb-1">Số điện thoại:</label>
+              <input type="text" name="phone" value="<%= profile.phone %>" class="w-full border px-3 py-2 rounded">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block font-medium mb-1">CCCD:</label>
+              <input type="text" name="idcard" value="<%= profile.idcard %>" class="w-full border px-3 py-2 rounded">
+            </div>
+            <div>
+              <label class="block font-medium mb-1">Ngày sinh:</label>
+              <input type="date" name="birthday" value="<%= profile.birthday || '' %>" class="w-full border px-3 py-2 rounded">
+            </div>
+          </div>
+          <div>
+            <label class="block font-medium mb-1">Trạng thái thanh toán:</label>
+            <select name="paid" class="w-full border px-3 py-2 rounded">
+              <option value="true" <%= profile.paid ? 'selected' : '' %>>Đã thanh toán</option>
+              <option value="false" <%= !profile.paid ? 'selected' : '' %>>Chưa thanh toán</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-medium mb-1">Thêm ảnh minh hoạ:</label>
+            <input type="file" name="images" multiple class="block w-full border rounded px-3 py-2">
+          </div>
         </div>
         <div class="text-center pt-4">
           <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-2 rounded-full shadow-lg transition-transform hover:scale-105">
             <i class="fas fa-save mr-2"></i>Lưu Thay Đổi
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal chỉnh sửa ghi chú -->
+  <div id="noteModal" class="modal fixed inset-0 bg-black bg-opacity-60 items-center justify-center z-50">
+    <div class="bg-white p-6 rounded-xl shadow-2xl max-w-lg w-full mx-4 relative animate-fadeIn">
+      <button onclick="closeNoteModal()" class="absolute top-2 right-2 text-gray-600 hover:text-red-500 text-2xl font-bold">&times;</button>
+      <h2 class="text-2xl font-bold text-blue-600 mb-4 text-center">Chỉnh sửa Ghi chú</h2>
+      <form action="/update-profile" method="POST" enctype="multipart/form-data" class="space-y-4">
+        <!-- Trường ẩn chứa _id của hồ sơ -->
+        <input type="hidden" name="_id" value="<%= profile._id %>">
+        <div>
+          <label class="block font-medium mb-1">Ghi chú:</label>
+          <textarea name="notes" rows="5" class="w-full border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-300" placeholder="Nhập ghi chú..."><%= profile.notes %></textarea>
+        </div>
+        <div class="text-center pt-4">
+          <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-full shadow-lg transition-transform hover:scale-105">
+            <i class="fas fa-save mr-2"></i>Lưu Ghi chú
           </button>
         </div>
       </form>
@@ -219,9 +278,17 @@
       document.getElementById('editModal').classList.remove('open');
     }
   
-    // Cho phép đóng modal khi nhấn nền tối
-    document.getElementById('editModal').addEventListener('click', function (e) {
-      if (e.target.id === 'editModal') closeEditModal();
+    function openNoteModal() {
+      document.getElementById('noteModal').classList.add('open');
+    }
+  
+    function closeNoteModal() {
+      document.getElementById('noteModal').classList.remove('open');
+    }
+  
+    // Cho phép đóng modal khi nhấn nền tối cho noteModal
+    document.getElementById('noteModal').addEventListener('click', function (e) {
+      if (e.target.id === 'noteModal') closeNoteModal();
     });
   
     function deleteProfile(profileId) {

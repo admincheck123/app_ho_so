@@ -14,6 +14,7 @@ mongoose.connect('mongodb://localhost:27017/profilesDB', {
 });
 
 // Model hồ sơ khách hàng (Profile)
+// Đã thêm trường "notes" để lưu ghi chú của hồ sơ
 const Profile = mongoose.model('Profile', new mongoose.Schema({
   name: String,
   address: String,
@@ -33,6 +34,10 @@ const Profile = mongoose.model('Profile', new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  notes: {          // Trường ghi chú – bạn có thể nhập bất cứ nội dung nào.
+    type: String,
+    default: ""
+  },
   amountHistory: [  // Lịch sử cập nhật số tiền của hồ sơ
     {
       type: {
@@ -46,7 +51,7 @@ const Profile = mongoose.model('Profile', new mongoose.Schema({
   ]
 }, { timestamps: true }));
 
-// Model Tài khoản (Account) – số tiền tài khoản toàn cục và lịch sử giao dịch tài khoản
+// Model Tài khoản (Account) – số tiền tài khoản toàn cục và lịch sử giao dịch
 const Account = mongoose.model('Account', new mongoose.Schema({
   balance: { type: Number, default: 0 },
   history: [{
@@ -84,17 +89,26 @@ app.post('/add', upload.fields([
   { name: 'images', maxCount: 5 }
 ]), async (req, res) => {
   const { name, address, phone, birthday, idcard, email,
-          loanAmount, loanDate, returnDate, interestRate, interestEarned } = req.body;
-
+          loanAmount, loanDate, returnDate, interestRate, interestEarned, notes } = req.body;
+  // Nếu không upload avatar, gán default-avatar.png
   const avatar = req.files['avatar']?.[0]?.filename || 'default-avatar.png';
   const images = req.files['images']?.map(file => file.filename) || [];
-
   await Profile.create({
-    name, address, phone, birthday, idcard, email,
-    loanAmount, loanDate, returnDate, interestRate, interestEarned,
-    avatar, images
+    name,
+    address,
+    phone,
+    birthday,
+    idcard,
+    email,
+    loanAmount,
+    loanDate,
+    returnDate,
+    interestRate,
+    interestEarned,
+    avatar,
+    images,
+    notes
   });
-
   res.redirect('/list');
 });
 
@@ -104,7 +118,6 @@ app.get('/list', async (req, res) => {
   const profiles = await Profile.find({
     name: { $regex: search, $options: "i" }
   });
-
   // Tính toán thông tin bổ sung (ví dụ số ngày còn lại)
   const updatedProfiles = profiles.map(profile => {
     const today = new Date();
@@ -121,11 +134,9 @@ app.get('/list', async (req, res) => {
       daysLeftText: statusMessage
     };
   });
-
   // Lấy thông tin tài khoản; nếu chưa có, tạo mới
   let account = await Account.findOne({});
   if (!account) account = await Account.create({});
-
   res.render('list', { profiles: updatedProfiles, account });
 });
 
@@ -135,7 +146,7 @@ app.get('/profile/:id', async (req, res) => {
   res.render('profile', { profile });
 });
 
-// Trang sửa hồ sơ
+// Trang sửa hồ sơ (nếu có)
 app.get('/edit/:id', async (req, res) => {
   const profile = await Profile.findById(req.params.id);
   res.render('edit', { profile });
@@ -147,7 +158,6 @@ app.post('/edit/:id', upload.fields([
 ]), async (req, res) => {
   const updated = req.body;
   const profile = await Profile.findById(req.params.id);
-
   if (req.files.avatar) {
     if (profile.avatar && fs.existsSync(`public/uploads/${profile.avatar}`)) {
       fs.unlinkSync(`public/uploads/${profile.avatar}`);
@@ -156,7 +166,6 @@ app.post('/edit/:id', upload.fields([
   } else {
     updated.avatar = profile.avatar;
   }
-
   if (req.files.images) {
     profile.images.forEach(img => {
       const imgPath = `public/uploads/${img}`;
@@ -168,7 +177,8 @@ app.post('/edit/:id', upload.fields([
   } else {
     updated.images = profile.images;
   }
-
+  // Cập nhật ghi chú (notes)
+  updated.notes = req.body.notes || profile.notes;
   await Profile.findByIdAndUpdate(req.params.id, updated);
   res.redirect("/profile/" + req.params.id);
 });
@@ -178,31 +188,33 @@ app.post('/update-account', async (req, res) => {
   const { amount, type, reason } = req.body;
   let account = await Account.findOne({});
   if (!account) account = await Account.create({});
-
   const numericAmount = parseFloat(amount);
   if (isNaN(numericAmount)) return res.status(400).send('Số tiền không hợp lệ.');
-
   if (type === 'add') {
     account.balance += numericAmount;
   } else if (type === 'subtract') {
     account.balance -= numericAmount;
   }
-
   account.history.push({ type, amount: numericAmount, reason });
   await account.save();
   res.redirect('/list');
 });
 
-// Cập nhật hồ sơ
+// Cập nhật hồ sơ (Update profile) – sử dụng _id nếu gửi từ modal ghi chú
 app.post('/update-profile', upload.fields([
   { name: 'avatar', maxCount: 1 },
   { name: 'images', maxCount: 10 }
 ]), async (req, res) => {
   try {
-    const { name, address, email, phone, idcard, birthday, paid } = req.body;
-    const profile = await Profile.findOne({ phone });
+    const { name, address, email, phone, idcard, birthday, paid, notes } = req.body;
+    // Ưu tiên dùng _id nếu có (trong modal ghi chú) để cập nhật đúng hồ sơ
+    let profile;
+    if (req.body._id) {
+      profile = await Profile.findById(req.body._id);
+    } else {
+      profile = await Profile.findOne({ phone });
+    }
     if (!profile) return res.status(404).send('Không tìm thấy hồ sơ.');
-
     // Cập nhật các trường cơ bản
     profile.name = name || profile.name;
     profile.address = address || profile.address;
@@ -210,7 +222,7 @@ app.post('/update-profile', upload.fields([
     profile.idcard = idcard || profile.idcard;
     profile.birthday = birthday || profile.birthday;
     profile.paid = paid === 'true';
-
+    profile.notes = notes || profile.notes;
     // Cập nhật avatar
     if (req.files && req.files['avatar']) {
       const avatarFile = req.files['avatar'][0];
@@ -220,13 +232,11 @@ app.post('/update-profile', upload.fields([
       }
       profile.avatar = avatarFile.filename;
     }
-
     // Cập nhật ảnh khác
     if (req.files && req.files['images']) {
       const imageFiles = req.files['images'].map(file => file.filename);
       profile.images = [...(profile.images || []), ...imageFiles];
     }
-
     profile.updatedAt = new Date();
     await profile.save();
     res.redirect('/profile/' + profile._id);

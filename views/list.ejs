@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
   <meta charset="UTF-8" />
   <title>Danh Sách Hồ Sơ</title>
@@ -51,12 +51,12 @@
         </button>
       </form>
     </div>
-    <!-- Khối lịch sử cập nhật tài khoản (ẩn mặc định) -->
+    <!-- Khối lịch sử cập nhật tài khoản (ẩn mặc định) với phân trang -->
     <div id="accountHistory" class="mt-4 hidden">
       <% if (account.history && account.history.length > 0) { %>
         <h3 class="text-sm font-semibold text-gray-700 mb-2">🕘 Lịch sử giao dịch</h3>
         <div class="overflow-x-auto">
-          <table class="min-w-full text-xs text-gray-600">
+          <table id="historyTable" class="min-w-full text-xs text-gray-600">
             <thead>
               <tr class="bg-gray-100 text-left">
                 <th class="px-2 py-1">Thời gian</th>
@@ -67,7 +67,7 @@
             </thead>
             <tbody>
               <% account.history.slice().reverse().forEach(item => { %>
-                <tr class="border-t">
+                <tr class="history-row border-t">
                   <td class="px-2 py-1"><%= new Date(item.date).toLocaleString() %></td>
                   <td class="px-2 py-1 font-bold <%= item.type === 'add' ? 'text-green-600' : 'text-red-600' %>">
                     <%= item.type === 'add' ? 'Thêm' : 'Trừ' %>
@@ -81,6 +81,8 @@
             </tbody>
           </table>
         </div>
+        <!-- Phân trang (nút Previous và Next) -->
+        <div id="paginationControls" class="mt-2 flex items-center justify-center gap-4"></div>
       <% } else { %>
         <p class="text-sm text-gray-500">Chưa có giao dịch.</p>
       <% } %>
@@ -131,7 +133,7 @@
             </div>
           </a>
         </div>
-      <% }) %>
+      <% }); %>
     </div>
 
     <% if (profiles.length === 0) { %>
@@ -164,6 +166,116 @@
       historyEl.classList.toggle("hidden");
       // Ẩn form cập nhật nếu lịch sử mở
       document.getElementById("updateAccountForm").classList.add("hidden");
+      // Sau khi hiển thị lịch sử, khởi tạo phân trang
+      paginateHistory();
+    });
+
+    // Phân trang lịch sử giao dịch: hiển thị 5 dòng mỗi trang
+    function paginateHistory() {
+      const rows = document.querySelectorAll('#historyTable tbody .history-row');
+      const rowsPerPage = 5;
+      const totalRows = rows.length;
+      const totalPages = Math.ceil(totalRows / rowsPerPage);
+      let currentPage = 1;
+      
+      function renderTable() {
+        rows.forEach((row, index) => {
+          row.style.display = (index >= (currentPage-1) * rowsPerPage && index < currentPage * rowsPerPage) ? '' : 'none';
+        });
+        renderPaginationControls();
+      }
+      
+      function renderPaginationControls() {
+        const container = document.getElementById('paginationControls');
+        container.innerHTML = '';
+        if (totalPages <= 1) return;
+        
+        const prevBtn = document.createElement('button');
+        prevBtn.textContent = 'Trước';
+        prevBtn.className = 'px-3 py-1 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded';
+        prevBtn.disabled = currentPage === 1;
+        prevBtn.addEventListener('click', function() {
+          if (currentPage > 1) {
+            currentPage--;
+            renderTable();
+          }
+        });
+        container.appendChild(prevBtn);
+        
+        const pageInfo = document.createElement('span');
+        pageInfo.textContent = `Trang ${currentPage} của ${totalPages}`;
+        pageInfo.className = 'px-3';
+        container.appendChild(pageInfo);
+        
+        const nextBtn = document.createElement('button');
+        nextBtn.textContent = 'Sau';
+        nextBtn.className = 'px-3 py-1 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded';
+        nextBtn.disabled = currentPage === totalPages;
+        nextBtn.addEventListener('click', function() {
+          if (currentPage < totalPages) {
+            currentPage++;
+            renderTable();
+          }
+        });
+        container.appendChild(nextBtn);
+      }
+      
+      renderTable();
+    }
+  </script>
+  
+  <!-- Script xử lý modal cho các chức năng khác -->
+  <script>
+    function openModal(src) {
+      document.getElementById('modalImage').src = src;
+      document.getElementById('imageModal').classList.add('open');
+    }
+  
+    function closeModal() {
+      document.getElementById('imageModal').classList.remove('open');
+    }
+  
+    document.getElementById('imageModal').addEventListener('click', function (e) {
+      if (e.target.id === 'imageModal') closeModal();
+    });
+  
+    function openEditModal() {
+      // Nếu không có editModal trên trang, cảnh báo (để mã không gây lỗi)
+      const modal = document.getElementById('editModal');
+      if(modal) modal.classList.add('open');
+    }
+  
+    function closeEditModal() {
+      const modal = document.getElementById('editModal');
+      if(modal) modal.classList.remove('open');
+    }
+  
+    function openNoteModal() {
+      document.getElementById('noteModal').classList.add('open');
+    }
+  
+    function closeNoteModal() {
+      document.getElementById('noteModal').classList.remove('open');
+    }
+  
+    // Cho phép đóng modal khi nhấn nền tối cho noteModal
+    document.getElementById('noteModal').addEventListener('click', function (e) {
+      if (e.target.id === 'noteModal') closeNoteModal();
+    });
+  
+    function deleteProfile(profileId) {
+      if (confirm('Bạn có chắc chắn muốn xóa hồ sơ này không?')) {
+        window.location.href = '/delete/' + profileId;
+      }
+    }
+  </script>
+  
+  <!-- Phần khởi tạo phân trang lịch sử khi có bảng (nếu tồn tại) -->
+  <script>
+    // Nếu bảng lịch sử có tồn tại, gán lớp "history-row" cho các hàng.
+    const historyRows = document.querySelectorAll('#accountHistory tbody tr');
+    historyRows.forEach(row => {
+      row.classList.add('history-row');
     });
   </script>
 </body>
