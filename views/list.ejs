@@ -4,46 +4,133 @@
   <meta charset="UTF-8" />
   <title>Danh Sách Hồ Sơ</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body class="bg-gradient-to-br from-gray-100 to-white min-h-screen">
+  <!-- Khối Tài khoản nhỏ gọn (độc lập) -->
+  <div class="max-w-md mx-auto mt-12 p-6 bg-white rounded-xl shadow-xl border border-gray-200">
+    <div class="flex items-center justify-between">
+      <h2 class="text-xl font-bold text-indigo-600">
+        <i class="fas fa-money-bill-wave mr-2 text-green-500"></i>Tài Khoản
+      </h2>
+      <span class="<%= account.balance > 0 ? 'text-green-600' : account.balance < 0 ? 'text-red-600' : 'text-gray-800' %> text-lg font-semibold">
+        <%= account.balance.toLocaleString() %> VNĐ
+      </span>
+    </div>
+    <div class="mt-4 flex flex-col gap-2">
+      <button id="toggleUpdateAccountForm" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg shadow transition">
+        <i class="fas fa-edit mr-2"></i>Cập nhật tài khoản
+      </button>
+      <button id="toggleAccountHistory" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg shadow transition">
+        <i class="fas fa-history mr-2"></i>Xem lịch sử cập nhật
+      </button>
+    </div>
+    <!-- Form cập nhật tài khoản (ẩn mặc định) -->
+    <div id="updateAccountForm" class="mt-4 hidden">
+      <form action="/update-account" method="POST" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Số tiền</label>
+          <input name="amount" type="number" step="1000" required placeholder="Nhập số tiền" 
+                 class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Loại thao tác</label>
+          <select name="type" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400">
+            <option value="add">➕ Thêm tiền</option>
+            <option value="subtract">➖ Trừ tiền</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Lý do chỉnh sửa</label>
+          <input name="reason" type="text" placeholder="Lý do chỉnh sửa" 
+                 class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+        </div>
+        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg shadow transition w-full">
+          <i class="fas fa-paper-plane mr-2"></i>Gửi cập nhật
+        </button>
+      </form>
+    </div>
+    <!-- Khối lịch sử cập nhật tài khoản (ẩn mặc định) -->
+    <div id="accountHistory" class="mt-4 hidden">
+      <% if (account.history && account.history.length > 0) { %>
+        <h3 class="text-sm font-semibold text-gray-700 mb-2">🕘 Lịch sử giao dịch</h3>
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-xs text-gray-600">
+            <thead>
+              <tr class="bg-gray-100 text-left">
+                <th class="px-2 py-1">Thời gian</th>
+                <th class="px-2 py-1">Loại</th>
+                <th class="px-2 py-1">Số tiền</th>
+                <th class="px-2 py-1">Lý do</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% account.history.slice().reverse().forEach(item => { %>
+                <tr class="border-t">
+                  <td class="px-2 py-1"><%= new Date(item.date).toLocaleString() %></td>
+                  <td class="px-2 py-1 font-bold <%= item.type === 'add' ? 'text-green-600' : 'text-red-600' %>">
+                    <%= item.type === 'add' ? 'Thêm' : 'Trừ' %>
+                  </td>
+                  <td class="px-2 py-1 <%= item.type === 'add' ? 'text-green-600' : 'text-red-600' %>">
+                    <%= item.amount.toLocaleString() %> VNĐ
+                  </td>
+                  <td class="px-2 py-1 italic"><%= item.reason %></td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } else { %>
+        <p class="text-sm text-gray-500">Chưa có giao dịch.</p>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Nội dung chính: Danh sách hồ sơ -->
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
     <h1 class="text-4xl font-bold text-center text-indigo-700 mb-10">
       <i class="fas fa-folder-open mr-2"></i>Danh Sách Hồ Sơ Khách Hàng
     </h1>
-
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
       <% profiles.forEach(profile => { %>
-        <a href="/profile/<%= profile._id %>" class="block bg-white rounded-2xl shadow-md hover:shadow-xl transition duration-300 transform hover:-translate-y-1 overflow-hidden border border-gray-100">
-          <img src="/uploads/<%= profile.avatar %>" alt="Avatar" class="w-full h-52 object-cover">
-          <div class="p-5">
-            <div class="flex items-center justify-between">
-              <h2 class="text-xl font-semibold text-gray-800 truncate">
-                <i class="fas fa-user-circle text-indigo-500 mr-2"></i> <%= profile.name %>
-              </h2>
-              <% if (profile.paid) { %>
-                <span class="bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full shadow-sm">
-                  <i class="fas fa-check-circle mr-1"></i> Đã trả
-                </span>
-              <% } else { %>
-                <span class="bg-red-100 text-red-600 text-xs font-semibold px-3 py-1 rounded-full shadow-sm">
-                  <i class="fas fa-exclamation-circle mr-1"></i> Chưa trả
-                </span>
-              <% } %>
-            </div>
-
-            <p class="text-gray-500 mt-2 text-sm">
-              <i class="fas fa-map-marker-alt text-gray-400 mr-1"></i><%= profile.address %>
-            </p>
-            <p class="text-sm text-gray-600 mt-1">
+        <div class="block bg-white rounded-2xl shadow-md hover:shadow-xl transition duration-300 transform hover:-translate-y-1 overflow-hidden border border-gray-100">
+          <!-- Sử dụng avatar nếu tồn tại, nếu không thì dùng default-avatar.png -->
+          <a href="/profile/<%= profile._id %>">
+            <img 
+              src="/uploads/<%= profile.avatar ? profile.avatar : 'default-avatar.png' %>" 
+              alt="Avatar" 
+              class="w-full h-52 object-cover"
+              onerror="this.onerror=null;this.src='/uploads/default-avatar.png';"
+            >
+            <div class="p-5">
+              <div class="flex items-center justify-between">
+                <h2 class="text-xl font-semibold text-gray-800 truncate">
+                  <i class="fas fa-user-circle text-indigo-500 mr-2"></i> <%= profile.name %>
+                </h2>
+                <% if (profile.paid) { %>
+                  <span class="bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full shadow-sm">
+                    <i class="fas fa-check-circle mr-1"></i> Đã trả
+                  </span>
+                <% } else { %>
+                  <span class="bg-red-100 text-red-600 text-xs font-semibold px-3 py-1 rounded-full shadow-sm">
+                    <i class="fas fa-exclamation-circle mr-1"></i> Chưa trả
+                  </span>
+                <% } %>
+              </div>
+              <p class="text-gray-500 mt-2 text-sm">
+                <i class="fas fa-map-marker-alt text-gray-400 mr-1"></i><%= profile.address %>
+              </p>
+              <p class="text-sm text-gray-600 mt-1">
                 <i class="far fa-calendar-alt text-indigo-400 mr-1"></i><%= profile.daysLeftText %>
               </p>
-            <div class="mt-4 text-xs text-gray-400">
-              <p><i class="far fa-calendar-plus mr-1"></i> Tạo: <%= new Date(profile.createdAt).toLocaleString() %></p>
-              <p><i class="far fa-clock mr-1"></i> Cập nhật: <%= new Date(profile.updatedAt).toLocaleString() %></p>
+              <div class="mt-4 text-xs text-gray-400">
+                <p><i class="far fa-calendar-plus mr-1"></i> Tạo: <%= new Date(profile.createdAt).toLocaleString() %></p>
+                <p><i class="far fa-clock mr-1"></i> Cập nhật: <%= new Date(profile.updatedAt).toLocaleString() %></p>
+              </div>
             </div>
-          </div>
-        </a>
+          </a>
+        </div>
       <% }) %>
     </div>
 
@@ -60,5 +147,24 @@
       </a>
     </div>
   </div>
+
+  <!-- JavaScript Toggle cho form cập nhật và lịch sử tài khoản -->
+  <script>
+    // Toggle form cập nhật số tiền
+    document.getElementById("toggleUpdateAccountForm").addEventListener("click", function(){
+      var updateForm = document.getElementById("updateAccountForm");
+      updateForm.classList.toggle("hidden");
+      // Ẩn lịch sử nếu form mở
+      document.getElementById("accountHistory").classList.add("hidden");
+    });
+
+    // Toggle lịch sử tài khoản
+    document.getElementById("toggleAccountHistory").addEventListener("click", function(){
+      var historyEl = document.getElementById("accountHistory");
+      historyEl.classList.toggle("hidden");
+      // Ẩn form cập nhật nếu lịch sử mở
+      document.getElementById("updateAccountForm").classList.add("hidden");
+    });
+  </script>
 </body>
 </html>

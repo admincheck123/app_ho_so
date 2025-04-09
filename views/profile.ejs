@@ -21,82 +21,116 @@
   <div class="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-xl mt-10">
     <div class="relative">
 
-        <!-- Thẻ trạng thái thanh toán -->
-        <div class="absolute top-0 right-0 mt-2 mr-2">
-          <% if (profile.paid) { %>
-            <span class="inline-flex items-center px-3 py-1 bg-green-100 text-green-700 text-sm font-semibold rounded-full shadow">
-              <i class="fas fa-check-circle mr-1"></i> Đã thanh toán
-            </span>
-          <% } else { %>
-            <span class="inline-flex items-center px-3 py-1 bg-red-100 text-red-600 text-sm font-semibold rounded-full shadow">
-              <i class="fas fa-times-circle mr-1"></i> Chưa thanh toán
-            </span>
-          <% } %>
-        </div>
-    <div class="flex flex-col md:flex-row items-center gap-6">
-      <img src="/uploads/<%= profile.avatar || 'default-avatar.png' %>" class="w-40 h-40 rounded-full shadow-md object-cover border-4 border-blue-300" alt="Avatar">
-
-      <div>
-        <h2 class="text-2xl font-bold text-indigo-600 mb-2">
-          <i class="fas fa-user mr-2"></i> <%= profile.name %>
-        </h2>
-        <p class="text-gray-700"><i class="fas fa-map-marker-alt text-red-500 mr-2"></i> <%= profile.address %></p>
-        <p class="text-gray-700"><i class="fas fa-phone text-green-500 mr-2"></i> <%= profile.phone %></p>
-        <p class="text-gray-700"><i class="fas fa-envelope text-yellow-500 mr-2"></i> <%= profile.email || 'Không có' %></p>
-        <p class="text-gray-700"><i class="fas fa-id-card text-blue-400 mr-2"></i> CCCD: <%= profile.idcard %></p>
-        <p class="text-gray-700"><i class="fas fa-calendar text-purple-500 mr-2"></i> Ngày sinh: <%= profile.birthday || 'Không rõ' %></p>
-      </div>
-    </div>
-
-    <hr class="my-6 border-t-2 border-gray-200">
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-800 text-lg">
-      <p><i class="fas fa-money-bill-wave text-green-500 mr-2"></i> Số tiền mượn: <strong class="text-green-700"><%= profile.loanAmount.toLocaleString('vi-VN') %> VNĐ</strong></p>
-      <p><i class="fas fa-percent text-yellow-500 mr-2"></i> Lãi suất: <strong class="text-yellow-600"><%= profile.interestRate %>%</strong></p>
-      <p><i class="fas fa-coins text-orange-500 mr-2"></i> Tiền lời: <strong class="text-orange-600"><%= profile.interestEarned.toLocaleString('vi-VN') %> VNĐ</strong></p>
-      <p><i class="fas fa-calendar-day text-indigo-500 mr-2"></i> Ngày mượn: <span class="text-gray-700"><%= profile.loanDate %></span></p>
-      <p><i class="fas fa-calendar-check text-indigo-600 mr-2"></i> Ngày trả: <span class="text-gray-700"><%= profile.returnDate %></span></p>
-    </div>
-
-    <div class="mt-8">
-      <h3 class="text-xl font-semibold mb-4 text-blue-500"><i class="fas fa-images mr-2"></i> Ảnh minh hoạ</h3>
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-        <% if (profile.images && profile.images.length > 0) { %>
-          <% profile.images.forEach((img) => { %>
-            <img 
-              src="/uploads/<%= img %>" 
-              class="h-32 w-full object-cover rounded-lg shadow hover:scale-105 transition-transform duration-300 hover:shadow-xl border border-gray-200 cursor-pointer"
-              alt="Ảnh minh hoạ"
-              onclick="openModal('/uploads/<%= img %>')"
-            >
-          <% }) %>
+      <!-- Thẻ trạng thái thanh toán -->
+      <div class="absolute top-0 right-0 mt-2 mr-2">
+        <% if (profile.paid) { %>
+          <span class="inline-flex items-center px-3 py-1 bg-green-100 text-green-700 text-sm font-semibold rounded-full shadow">
+            <i class="fas fa-check-circle mr-1"></i> Đã thanh toán
+          </span>
         <% } else { %>
-          <p class="text-gray-500 col-span-3 italic">Không có ảnh minh hoạ.</p>
+          <span class="inline-flex items-center px-3 py-1 bg-red-100 text-red-600 text-sm font-semibold rounded-full shadow">
+            <i class="fas fa-times-circle mr-1"></i> Chưa thanh toán
+          </span>
         <% } %>
       </div>
-    </div>
 
-    <div class="mt-6 text-sm text-gray-700">
-      <p><i class="fas fa-clock mr-2 text-gray-600"></i> Thời gian tạo hồ sơ: <span class="text-indigo-500"><%= new Date(profile.createdAt).toLocaleString('vi-VN') %></span></p>
-      <% if (new Date(profile.updatedAt).getTime() !== new Date(profile.createdAt).getTime()) { %>
-        <p><i class="fas fa-history mr-2 text-gray-600"></i> Cập nhật lần cuối: <span class="text-red-500"><%= new Date(profile.updatedAt).toLocaleString('vi-VN') %></span></p>
-      <% } %>
-    </div>
+      <div class="flex flex-col md:flex-row items-center gap-6">
+        <!-- Avatar với fallback -->
+        <img 
+          src="/uploads/<%= profile.avatar ? profile.avatar : 'default-avatar.png' %>" 
+          onerror="this.onerror=null;this.src='/uploads/default-avatar.png';"
+          class="w-40 h-40 rounded-full shadow-md object-cover border-4 border-blue-300" 
+          alt="Avatar"
+        >
 
-    <div class="text-center mt-10">
-      <a href="/list" class="text-blue-600 hover:underline text-lg"><i class="fas fa-arrow-left mr-2"></i>Quay lại danh sách</a>
-    </div>
-      
-    <div class="text-center mt-6">
-      <button onclick="openEditModal()" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-lg transition-transform transform hover:scale-105">
-        <i class="fas fa-edit mr-2"></i>Sửa Hồ Sơ
-      </button>
-    </div>
-    <div class="text-center mt-6">
+        <div>
+          <h2 class="text-2xl font-bold text-indigo-600 mb-2">
+            <i class="fas fa-user mr-2"></i> <%= profile.name %>
+          </h2>
+          <p class="text-gray-700"><i class="fas fa-map-marker-alt text-red-500 mr-2"></i> <%= profile.address %></p>
+          <p class="text-gray-700"><i class="fas fa-phone text-green-500 mr-2"></i> <%= profile.phone %></p>
+          <p class="text-gray-700"><i class="fas fa-envelope text-yellow-500 mr-2"></i> <%= profile.email || 'Không có' %></p>
+          <p class="text-gray-700"><i class="fas fa-id-card text-blue-400 mr-2"></i> CCCD: <%= profile.idcard %></p>
+          <p class="text-gray-700"><i class="fas fa-calendar text-purple-500 mr-2"></i> Ngày sinh: <%= profile.birthday || 'Không rõ' %></p>
+        </div>
+      </div>
+
+      <hr class="my-6 border-t-2 border-gray-200">
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-800 text-lg">
+        <p><i class="fas fa-money-bill-wave text-green-500 mr-2"></i> Số tiền mượn: 
+          <strong class="text-green-700">
+            <%= profile.loanAmount.toLocaleString('vi-VN') %> VNĐ
+          </strong>
+        </p>
+        <p><i class="fas fa-percent text-yellow-500 mr-2"></i> Lãi suất: 
+          <strong class="text-yellow-600">
+            <%= profile.interestRate %>%
+          </strong>
+        </p>
+        <p><i class="fas fa-coins text-orange-500 mr-2"></i> Tiền lời: 
+          <strong class="text-orange-600">
+            <%= profile.interestEarned.toLocaleString('vi-VN') %> VNĐ
+          </strong>
+        </p>
+        <p><i class="fas fa-calendar-day text-indigo-500 mr-2"></i> Ngày mượn: 
+          <span class="text-gray-700"><%= profile.loanDate %></span>
+        </p>
+        <p><i class="fas fa-calendar-check text-indigo-600 mr-2"></i> Ngày trả: 
+          <span class="text-gray-700"><%= profile.returnDate %></span>
+        </p>
+      </div>
+
+      <div class="mt-8">
+        <h3 class="text-xl font-semibold mb-4 text-blue-500"><i class="fas fa-images mr-2"></i> Ảnh minh hoạ</h3>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <% if (profile.images && profile.images.length > 0) { %>
+            <% profile.images.forEach((img) => { %>
+              <img 
+                src="/uploads/<%= img %>" 
+                class="h-32 w-full object-cover rounded-lg shadow hover:scale-105 transition-transform duration-300 hover:shadow-xl border border-gray-200 cursor-pointer"
+                alt="Ảnh minh hoạ"
+                onclick="openModal('/uploads/<%= img %>')"
+              >
+            <% }) %>
+          <% } else { %>
+            <p class="text-gray-500 col-span-3 italic">Không có ảnh minh hoạ.</p>
+          <% } %>
+        </div>
+      </div>
+
+      <div class="mt-6 text-sm text-gray-700">
+        <p><i class="fas fa-clock mr-2 text-gray-600"></i> Thời gian tạo hồ sơ: 
+          <span class="text-indigo-500">
+            <%= new Date(profile.createdAt).toLocaleString('vi-VN') %>
+          </span>
+        </p>
+        <% if (new Date(profile.updatedAt).getTime() !== new Date(profile.createdAt).getTime()) { %>
+          <p><i class="fas fa-history mr-2 text-gray-600"></i> Cập nhật lần cuối: 
+            <span class="text-red-500">
+              <%= new Date(profile.updatedAt).toLocaleString('vi-VN') %>
+            </span>
+          </p>
+        <% } %>
+      </div>
+
+      <div class="text-center mt-10">
+        <a href="/list" class="text-blue-600 hover:underline text-lg">
+          <i class="fas fa-arrow-left mr-2"></i>Quay lại danh sách
+        </a>
+      </div>
+        
+      <div class="text-center mt-6">
+        <button onclick="openEditModal()" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-lg transition-transform transform hover:scale-105">
+          <i class="fas fa-edit mr-2"></i>Sửa Hồ Sơ
+        </button>
+      </div>
+      <div class="text-center mt-6">
         <button onclick="deleteProfile('<%= profile._id %>')" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg transition-transform transform hover:scale-105">
           <i class="fas fa-trash mr-2"></i>Xóa Hồ Sơ
         </button>
       </div>
+    </div>
   </div>
 
   <!-- Modal hiển thị ảnh -->
@@ -143,14 +177,12 @@
           <input type="date" name="birthday" value="<%= profile.birthday || '' %>" class="w-full border px-3 py-2 rounded">
         </div>
         <div>
-            <label class="block font-medium mb-1">Trạng thái thanh toán:</label>
-            <select name="paid" class="w-full border px-3 py-2 rounded">
-                <option value="true" <%= profile.paid ? 'selected' : '' %>>Đã thanh toán</option>
-                <option value="false" <%= !profile.paid ? 'selected' : '' %>>Chưa thanh toán</option>
-              </select>
-              
-          </div>
-          
+          <label class="block font-medium mb-1">Trạng thái thanh toán:</label>
+          <select name="paid" class="w-full border px-3 py-2 rounded">
+            <option value="true" <%= profile.paid ? 'selected' : '' %>>Đã thanh toán</option>
+            <option value="false" <%= !profile.paid ? 'selected' : '' %>>Chưa thanh toán</option>
+          </select>
+        </div>
         <div>
           <label class="block font-medium mb-1">Thêm ảnh minh hoạ:</label>
           <input type="file" name="images" multiple class="block w-full border rounded px-3 py-2">
@@ -191,11 +223,12 @@
     document.getElementById('editModal').addEventListener('click', function (e) {
       if (e.target.id === 'editModal') closeEditModal();
     });
+  
     function deleteProfile(profileId) {
-  if (confirm('Bạn có chắc chắn muốn xóa hồ sơ này không?')) {
-    window.location.href = '/delete/' + profileId;
-  }
-}
+      if (confirm('Bạn có chắc chắn muốn xóa hồ sơ này không?')) {
+        window.location.href = '/delete/' + profileId;
+      }
+    }
   </script>
 </body>
 </html>
