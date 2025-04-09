@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const session = require('express-session');
 
 const app = express();
 
@@ -12,6 +13,16 @@ mongoose.connect('mongodb://localhost:27017/profilesDB', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
+
+// Cấu hình session: thời gian hết hạn 10 phút
+app.use(session({
+  secret: 'my-secret-key', // nên thay bằng chuỗi bí mật của riêng bạn
+  resave: false,
+  saveUninitialized: false,
+  cookie: { maxAge: 10 * 60 * 1000 } // 10 phút
+}));
+
+// --- MODELS --- //
 
 // Model hồ sơ khách hàng (Profile)
 // Đã thêm trường "notes" để lưu ghi chú của hồ sơ
@@ -30,18 +41,18 @@ const Profile = mongoose.model('Profile', new mongoose.Schema({
   avatar: String,
   images: [String],
   paid: Boolean,
-  currentAmount: {  // Số tiền của hồ sơ (nếu cần hiển thị riêng, không nhầm với số tiền tài khoản)
+  currentAmount: {
     type: Number,
     default: 0,
   },
-  notes: {          // Trường ghi chú – bạn có thể nhập bất cứ nội dung nào.
+  notes: {
     type: String,
     default: ""
   },
-  amountHistory: [  // Lịch sử cập nhật số tiền của hồ sơ
+  amountHistory: [
     {
       type: {
-        type: String, // 'add' hoặc 'subtract'
+        type: String,
         enum: ['add', 'subtract']
       },
       amount: Number,
@@ -62,6 +73,8 @@ const Account = mongoose.model('Account', new mongoose.Schema({
   }]
 }));
 
+// --- END MODELS --- //
+
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
@@ -78,19 +91,92 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// Trang index
+// --- MIDDLEWARE BẢO VỆ TRANG --- //
+function isAuthenticated(req, res, next) {
+  if (req.session && req.session.loggedIn) {
+    // Nếu session đã đăng nhập, reset lại thời gian hết hạn cookie
+    req.session.cookie.expires = new Date(Date.now() + 10 * 60 * 1000);
+    req.session.cookie.maxAge = 10 * 60 * 1000;
+    return next();
+  } else {
+    res.redirect('/login');
+  }
+}
+
+// --- ROUTES ĐĂNG NHẬP / ĐĂNG XUẤT --- //
+// Trang đăng nhập
+app.get('/login', (req, res) => {
+  res.render('login', { error: null });
+});
+
+// Xử lý đăng nhập
+app.post('/login', (req, res) => {
+  const { username, password } = req.body;
+  // Kiểm tra username và password
+  if (username === 'admin' && password === '123456') {
+    req.session.loggedIn = true;
+    // Thiết lập thời gian đăng nhập cho 10 phút
+    req.session.cookie.expires = new Date(Date.now() + 10 * 60 * 1000);
+    req.session.cookie.maxAge = 10 * 60 * 1000;
+    res.redirect('/list');
+  } else {
+    res.render('login', { error: 'Tên tài khoản hoặc mật khẩu không chính xác!' });
+  }
+});
+
+// Route đăng xuất
+app.get('/logout', (req, res) => {
+  req.session.destroy();
+  res.redirect('/login');
+});
+
+// --- ROUTES CÓ BẢO VỆ --- //
+app.get('/list', isAuthenticated, async (req, res) => {
+  const search = req.query.search || "";
+  const profiles = await Profile.find({
+    name: { $regex: search, $options: "i" }
+  });
+  const updatedProfiles = profiles.map(profile => {
+    const today = new Date();
+    const loanDate = new Date(profile.loanDate);
+    const returnDate = new Date(profile.returnDate);
+    let statusMessage = 'Chưa rõ';
+    if (!isNaN(returnDate.getTime()) && !isNaN(loanDate.getTime())) {
+      const diffTime = returnDate - today;
+      const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      statusMessage = daysLeft < 0 ? 'Đã hết hạn' : `${daysLeft} ngày còn lại`;
+    }
+    return {
+      ...profile.toObject(),
+      daysLeftText: statusMessage
+    };
+  });
+  let account = await Account.findOne({});
+  if (!account) account = await Account.create({});
+  res.render('list', { profiles: updatedProfiles, account });
+});
+
+app.get('/profile/:id', isAuthenticated, async (req, res) => {
+  const profile = await Profile.findById(req.params.id);
+  res.render('profile', { profile });
+});
+
+// Các route khác (index, add, edit, update-account, update-profile, delete) vẫn không cần bảo vệ nếu bạn chỉ muốn bảo vệ /list và /profile.
+// Bạn có thể áp dụng middleware isAuthenticated cho các route cần bảo vệ theo ý muốn.
+
+// Trang index vẫn được truy cập công khai
 app.get('/', (req, res) => {
   res.render('index');
 });
 
-// Thêm hồ sơ mới
+// --- Các Route hồ sơ cũ --- //
+
 app.post('/add', upload.fields([
   { name: 'avatar', maxCount: 1 },
   { name: 'images', maxCount: 5 }
 ]), async (req, res) => {
   const { name, address, phone, birthday, idcard, email,
           loanAmount, loanDate, returnDate, interestRate, interestEarned, notes } = req.body;
-  // Nếu không upload avatar, gán default-avatar.png
   const avatar = req.files['avatar']?.[0]?.filename || 'default-avatar.png';
   const images = req.files['images']?.map(file => file.filename) || [];
   await Profile.create({
@@ -110,46 +196,6 @@ app.post('/add', upload.fields([
     notes
   });
   res.redirect('/list');
-});
-
-// Hiển thị danh sách hồ sơ và số tiền tài khoản
-app.get('/list', async (req, res) => {
-  const search = req.query.search || "";
-  const profiles = await Profile.find({
-    name: { $regex: search, $options: "i" }
-  });
-  // Tính toán thông tin bổ sung (ví dụ số ngày còn lại)
-  const updatedProfiles = profiles.map(profile => {
-    const today = new Date();
-    const loanDate = new Date(profile.loanDate);
-    const returnDate = new Date(profile.returnDate);
-    let statusMessage = 'Chưa rõ';
-    if (!isNaN(returnDate.getTime()) && !isNaN(loanDate.getTime())) {
-      const diffTime = returnDate - today;
-      const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      statusMessage = daysLeft < 0 ? 'Đã hết hạn' : `${daysLeft} ngày còn lại`;
-    }
-    return {
-      ...profile.toObject(),
-      daysLeftText: statusMessage
-    };
-  });
-  // Lấy thông tin tài khoản; nếu chưa có, tạo mới
-  let account = await Account.findOne({});
-  if (!account) account = await Account.create({});
-  res.render('list', { profiles: updatedProfiles, account });
-});
-
-// Trang chi tiết hồ sơ
-app.get('/profile/:id', async (req, res) => {
-  const profile = await Profile.findById(req.params.id);
-  res.render('profile', { profile });
-});
-
-// Trang sửa hồ sơ (nếu có)
-app.get('/edit/:id', async (req, res) => {
-  const profile = await Profile.findById(req.params.id);
-  res.render('edit', { profile });
 });
 
 app.post('/edit/:id', upload.fields([
@@ -177,13 +223,11 @@ app.post('/edit/:id', upload.fields([
   } else {
     updated.images = profile.images;
   }
-  // Cập nhật ghi chú (notes)
   updated.notes = req.body.notes || profile.notes;
   await Profile.findByIdAndUpdate(req.params.id, updated);
   res.redirect("/profile/" + req.params.id);
 });
 
-// Cập nhật số tiền TÀI KHOẢN toàn cục
 app.post('/update-account', async (req, res) => {
   const { amount, type, reason } = req.body;
   let account = await Account.findOne({});
@@ -200,14 +244,12 @@ app.post('/update-account', async (req, res) => {
   res.redirect('/list');
 });
 
-// Cập nhật hồ sơ (Update profile) – sử dụng _id nếu gửi từ modal ghi chú
 app.post('/update-profile', upload.fields([
   { name: 'avatar', maxCount: 1 },
   { name: 'images', maxCount: 10 }
 ]), async (req, res) => {
   try {
     const { name, address, email, phone, idcard, birthday, paid, notes } = req.body;
-    // Ưu tiên dùng _id nếu có (trong modal ghi chú) để cập nhật đúng hồ sơ
     let profile;
     if (req.body._id) {
       profile = await Profile.findById(req.body._id);
@@ -215,7 +257,6 @@ app.post('/update-profile', upload.fields([
       profile = await Profile.findOne({ phone });
     }
     if (!profile) return res.status(404).send('Không tìm thấy hồ sơ.');
-    // Cập nhật các trường cơ bản
     profile.name = name || profile.name;
     profile.address = address || profile.address;
     profile.email = email || profile.email;
@@ -223,7 +264,6 @@ app.post('/update-profile', upload.fields([
     profile.birthday = birthday || profile.birthday;
     profile.paid = paid === 'true';
     profile.notes = notes || profile.notes;
-    // Cập nhật avatar
     if (req.files && req.files['avatar']) {
       const avatarFile = req.files['avatar'][0];
       const oldAvatarPath = path.join(__dirname, 'public', 'uploads', profile.avatar || '');
@@ -232,7 +272,6 @@ app.post('/update-profile', upload.fields([
       }
       profile.avatar = avatarFile.filename;
     }
-    // Cập nhật ảnh khác
     if (req.files && req.files['images']) {
       const imageFiles = req.files['images'].map(file => file.filename);
       profile.images = [...(profile.images || []), ...imageFiles];
@@ -246,7 +285,6 @@ app.post('/update-profile', upload.fields([
   }
 });
 
-// Xóa hồ sơ
 app.get('/delete/:id', async (req, res) => {
   const profile = await Profile.findById(req.params.id);
   if (profile) {
