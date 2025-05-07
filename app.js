@@ -373,6 +373,26 @@ app.get('/delete/:id', async (req, res) => {
   res.redirect('/list');
 });
 
+// --- ROUTES HỒ SƠ & IN ĐƠN VAY TIỀN --- //
+app.get('/', (req, res) => res.render('index'));
+app.get('/profile/:id', isAuthenticated, async (req, res) => {
+  const profile = await Profile.findById(req.params.id);
+  res.render('profile', { profile });
+});
+
+// Route in đơn vay tiền
+app.get('/profile/:id/form', isAuthenticated, async (req, res) => {
+  const profile = await Profile.findById(req.params.id);
+  if (!profile) return res.status(404).send('Không tìm thấy hồ sơ.');
+  const today = new Date();
+  res.render('form', {
+    profile,
+    day: today.getDate(),
+    month: today.getMonth() + 1,
+    year: today.getFullYear()
+  });
+});
+
 // Khởi động server
 app.listen(3000, () => {
   console.log('Server đang chạy tại http://localhost:3000');

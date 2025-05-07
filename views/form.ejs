@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Đơn Vay Tiền</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+
+            #print-area,
+            #print-area * {
+                visibility: visible;
+            }
+
+            #print-area {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 font-sans">
+    <div id="print-area" class="max-w-3xl mx-auto bg-white p-8 border-4 border-gray-800 shadow-lg">
+
+        <!-- Header chính thức -->
+        <div class="flex justify-between items-center mb-4">
+            <div class="text-center">
+                <p class="text-xl font-bold uppercase">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
+                <p class="italic">Độc lập - Tự do - Hạnh phúc</p>
+            </div>
+            <div class="text-right text-sm">
+                <p>Đà Nẵng, ngày <%= day %> tháng <%= month %> năm <%= year %>
+                </p>
+            </div>
+        </div>
+
+        <hr class="border-t-2 border-gray-600 mb-4">
+
+        <!-- Avatar người vay -->
+        <div class="text-center mb-4">
+            <img src="/uploads/<%= profile.avatar || 'default-avatar.png' %>"
+                class="w-24 h-24 rounded-full border-2 border-gray-400 mx-auto" alt="Avatar">
+        </div>
+
+        <div class="text-center mb-6">
+            <h1 class="text-3xl font-extrabold uppercase tracking-wider">ĐƠN VAY TIỀN</h1>
+        </div>
+
+        <!-- Thông tin vay -->
+        <dl class="grid grid-cols-1 gap-y-3 text-lg">
+            <div class="flex">
+                <dt class="w-48 font-semibold">1. Họ và tên:</dt>
+                <dd class="flex-1">
+                    <%= profile.name %>
+                </dd>
+            </div>
+            <div class="flex">
+                <dt class="w-48 font-semibold">2. Sinh năm:</dt>
+                <dd class="flex-1">
+                    <%= profile.birthday ? new Date(profile.birthday).getFullYear() : '...' %>
+                </dd>
+            </div>
+            <div class="flex">
+                <dt class="w-48 font-semibold">3. CMND/CCCD:</dt>
+                <dd class="flex-1">
+                    <%= profile.idcard %>
+                </dd>
+            </div>
+            <div class="flex">
+                <dt class="w-48 font-semibold">4. Địa chỉ:</dt>
+                <dd class="flex-1">
+                    <%= profile.address %>
+                </dd>
+            </div>
+            <div class="flex">
+                <dt class="w-48 font-semibold">5. Điện thoại:</dt>
+                <dd class="flex-1">
+                    <%= profile.phone %>
+                </dd>
+            </div>
+            <div class="flex">
+                <dt class="w-48 font-semibold">6. Số tiền vay:</dt>
+                <dd class="flex-1">
+                    <%= profile.loanAmount.toLocaleString('vi-VN') %> VNĐ
+                </dd>
+            </div>
+            <div class="flex">
+                <dt class="w-48 font-semibold">7.Ghi chú:</dt>
+                <dd class="flex-1">
+                    <%= profile.notes.trim() || '...' %>
+                </dd>
+            </div>
+            <div class="flex">
+                <dt class="w-48 font-semibold">8. Thời hạn vay:</dt>
+                <dd class="flex-1">Từ <%= profile.loanDate %> đến <%= profile.returnDate %>
+                </dd>
+            </div>
+            <div class="flex">
+                <dt class="w-48 font-semibold">9. Lãi suất:</dt>
+                <!-- <dd class="flex-1"><%= profile.interestRate %>%/năm</dd> -->
+            </div>
+            <div class="flex">
+                <dt class="w-48 font-semibold">10. Hình thức trả:</dt>
+                <dd class="flex-1">Trả theo ngày</dd>
+            </div>
+            <div class="flex">
+                <dt class="w-48 font-semibold">11. Nội dung vay:</dt>
+                <dd class="flex-1">Tôi có vay bên ông Lê Minh Khang vào ngày <%= profile.loanDate %> tại Đà Nẵng với
+                        hình thức chuyển khoản.</dd>
+            </div>
+        </dl>
+            <!-- Phần cam kết -->
+    <div class="mt-6">
+        <h2 class="text-xl font-semibold mb-2">Cam kết</h2>
+        <p class="text-lg leading-relaxed indent-8">Tôi cam kết hoàn trả đầy đủ số tiền và lãi đúng hạn theo thỏa thuận. Trong trường hợp vi phạm, tôi xin chịu trách nhiệm trước pháp luật và tòa án nhân dân quận Thanh Khê, TP. Đà Nẵng.</p>
+      </div>
+        <!-- Ảnh minh hoạ -->
+        <div class="mt-6">
+            <h3 class="text-xl font-semibold mb-2">Ảnh thông tin</h3>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <% if (profile.images && profile.images.length) { %>
+                    <% profile.images.forEach(img=> { %>
+                        <img src="/uploads/<%= img %>" alt="Ảnh minh hoạ"
+                            class="w-full h-24 object-cover rounded border">
+                        <% }) %>
+                            <% } else { %>
+                                <p class="italic text-gray-500">Không có ảnh thông tin.</p>
+                                <% } %>
+            </div>
+        </div>
+
+        <!-- Chữ ký -->
+        <div class="mt-10 grid grid-cols-2 text-center text-lg">
+            <div>
+                <p class="font-semibold">BÊN VAY</p>
+                <p class="mt-16 italic">(Ký & ghi rõ họ tên)</p>
+            </div>
+            <div>
+                <p class="font-semibold">BÊN CHO VAY</p>
+                <p class="mt-16 italic">(Ký & ghi rõ họ tên)</p>
+            </div>
+        </div>
+
+        <!-- Nút in -->
+        <div class="text-center no-print mt-8">
+            <button onclick="window.print()" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">
+                In Đơn
+            </button>
+        </div>
+
+    </div>
+</body>
+
+</html>
