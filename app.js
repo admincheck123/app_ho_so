@@ -363,7 +363,7 @@ app.get('/delete/:id', async (req, res) => {
   const profile = await Profile.findById(req.params.id);
   if (profile) {
     if (profile.avatar && fs.existsSync(`public/uploads/${profile.avatar}`)) {
-      fs.unlinkSync(`public/uploads/${profile.avatar}`);
+      fs.unlinkSync(`public/uploads/${profile.avatar}`)
     }
     profile.images.forEach(img => {
       if (fs.existsSync(`public/uploads/${img}`)) fs.unlinkSync(`public/uploads/${img}`);
